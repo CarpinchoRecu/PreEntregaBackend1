@@ -1,57 +1,47 @@
-import { Router } from 'express'
-import { ProductManager } from '../controllers/productManager.js'
+// .routes.js lo unico que hace es que cambia el icono a un icono de rutas
+import { Router } from 'express';
+import { ProductManager } from '../controllers/ProductManager.js';
 
-const productManager = new ProductManager('src/models/productos.txt')
-
-const routerProd = Router()
+const routerProd = Router();
+const productManager = new ProductManager('./src/models/products.json');
 
 routerProd.get('/', async (req, res) => {
-    const { limit } = req.query
+	const { limit } = req.query;
 
-    const prods = await productManager.getProducts()
-    const products = prods.slice(0, limit)
-    res.status(200).send(products)
+	const prods = await productManager.getProducts();
+	const productos = prods.slice(0, limit);
 
-})
+	res.status(200).send(productos);
+});
 
-routerProd.get('/:id', async (req, res) => {
-    const { id } = req.params
-    const prod = await productManager.getProductById(parseInt(id))
+routerProd.get('/:pid', async (req, res) => {
+	const { pid } = req.params;
+	const prod = await productManager.getProductById(parseInt(pid));
 
-    if (prod)
-        res.status(200).send(prod)
-    else
-        res.status(404).send("Producto no existente")
-})
+	prod ? res.status(200).send(prod) : res.status(404).send('Producto no existente');
+});
 
 routerProd.post('/', async (req, res) => {
-    const confirmacion = await productManager.addProduct(req.body)
+	const confirmacion = await productManager.addProduct(req.body);
+	confirmacion
+		? res.status(200).send('Producto creado correctamente')
+		: res.status(400).send('Producto ya existente');
+});
 
-    if (confirmacion)
-        res.status(200).send("Producto creado correctamente")
-    else
-        res.status(400).send("Producto ya existente")
-})
+routerProd.put('/:pid', async (req, res) => {
+	const { pid } = req.params;
+	const confirmacion = await productManager.updateProducts(parseInt(pid), req.body);
+	confirmacion
+		? res.status(200).send('Producto actualizado correctamente')
+		: res.status(400).send('Producto ya existente');
+});
 
-routerProd.put('/:id', async (req, res) => {
+routerProd.delete('/:pid', async (req, res) => {
+	const { pid } = req.params;
+	const confirmacion = await productManager.deleteProduct(parseInt(pid));
+	confirmacion
+		? res.status(200).send('Producto eliminado correctamente')
+		: res.status(404).send('Producto no encontrado');
+});
 
-    const confirmacion = await productManager.updateProduct(req.params.id, req.body)
-
-    if (confirmacion)
-        res.status(200).send("Producto actualizado correctamente")
-    else
-        res.status(404).send("Producto no encontrado")
-
-})
-
-routerProd.delete('/:id', async (req, res) => {
-
-    const confirmacion = await productManager.deleteProduct(req.params.id)
-
-    if (confirmacion)
-        res.status(200).send("Producto eliminado correctamente")
-    else
-        res.status(404).send("Producto no encontrado")
-})
-
-export default routerProd
+export default routerProd;
